@@ -1,115 +1,173 @@
 import 'package:flutter/material.dart';
 
+import 'package:color_mix/widgets/color_slider_row.dart';
+
 void main() {
-  runApp(const MyApp());
+  runApp(const ColorMixApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+enum ColorSection { red, green, blue }
 
-  // This widget is the root of your application.
+class ColorMixApp extends StatelessWidget {
+  const ColorMixApp({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Flutter Color Mix',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const ColorMixPage(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+class ColorMixPage extends StatefulWidget {
+  const ColorMixPage({Key? key}) : super(key: key);
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<ColorMixPage> createState() => _ColorMixPageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _ColorMixPageState extends State<ColorMixPage> {
+  Map<ColorSection, bool> switchValues = {
+    ColorSection.red: true,
+    ColorSection.green: false,
+    ColorSection.blue: false,
+  };
 
-  void _incrementCounter() {
+  Map<ColorSection, double> sliderValues = {
+    ColorSection.red: 0.5,
+    ColorSection.green: 0.5,
+    ColorSection.blue: 0.5,
+  };
+
+  Color previewColor = Colors.black;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _updateUI();
+  }
+
+  void _setSliderValue(double value, ColorSection key) {
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+      sliderValues[key] = value;
+    });
+    _updateUI();
+  }
+
+  void _setSwitchValue(bool value, ColorSection key) {
+    setState(() {
+      switchValues[key] = value;
+    });
+    _updateUI();
+  }
+
+  void _reset() {
+    setState(() {
+      switchValues[ColorSection.red] = true;
+      switchValues[ColorSection.green] = false;
+      switchValues[ColorSection.blue] = false;
+      sliderValues[ColorSection.red] = 0.5;
+      sliderValues[ColorSection.green] = 0.5;
+      sliderValues[ColorSection.blue] = 0.5;
+    });
+    _updateUI();
+  }
+
+  void _updateUI() {
+    final red = switchValues[ColorSection.red]!
+        ? (255 * sliderValues[ColorSection.red]!).toInt()
+        : 0;
+    final green = switchValues[ColorSection.green]!
+        ? (255 * sliderValues[ColorSection.green]!).toInt()
+        : 0;
+    final blue = switchValues[ColorSection.blue]!
+        ? (255 * sliderValues[ColorSection.blue]!).toInt()
+        : 0;
+
+    setState(() {
+      previewColor = Color.fromRGBO(red, green, blue, 1.0);
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+    final isBright =
+        ThemeData.estimateBrightnessForColor(previewColor) == Brightness.light;
+
     return Scaffold(
       appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: const Text('Mix your color'),
       ),
       body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                Container(
+                  width: double.infinity,
+                  height: 250,
+                  color: previewColor,
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Red ${previewColor.red}\nGreen ${previewColor.green}\nBlue ${previewColor.blue}',
+                      style: TextStyle(
+                        inherit: true,
+                        color: isBright ? Colors.black : Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
+            ColorSliderRow(
+              onSwitchChanged: (value) =>
+                  _setSwitchValue(value, ColorSection.red),
+              onSliderChanged: (value) =>
+                  _setSliderValue(value, ColorSection.red),
+              switchValue: switchValues[ColorSection.red]!,
+              sliderValue: sliderValues[ColorSection.red]!,
+              activeColor: Colors.red,
             ),
+            ColorSliderRow(
+              onSwitchChanged: (value) =>
+                  _setSwitchValue(value, ColorSection.green),
+              onSliderChanged: (value) =>
+                  _setSliderValue(value, ColorSection.green),
+              switchValue: switchValues[ColorSection.green]!,
+              sliderValue: sliderValues[ColorSection.green]!,
+              activeColor: Colors.green,
+            ),
+            ColorSliderRow(
+              onSwitchChanged: (value) =>
+                  _setSwitchValue(value, ColorSection.blue),
+              onSliderChanged: (value) =>
+                  _setSliderValue(value, ColorSection.blue),
+              switchValue: switchValues[ColorSection.blue]!,
+              sliderValue: sliderValues[ColorSection.blue]!,
+              activeColor: Colors.blue,
+            ),
+            Expanded(
+              child: Container(
+                alignment: Alignment.bottomCenter,
+                child: TextButton(
+                  child: const Text('Reset'),
+                  onPressed: _reset,
+                ),
+              ),
+            )
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
